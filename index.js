@@ -2,6 +2,7 @@
 
 'use strict';
 
+var _ = require('lodash');
 var tls = require('tls');
 var net = require('net');
 var eos = require('end-of-stream');
@@ -37,6 +38,8 @@ function start(opts) {
   var out;
   var noRestart = function() {};
   var imageNameMap = {};
+  var nameLabelMap = {};
+  var logLabelCompiledTempate = _.template(opts.logLabelTemplate);
 
   function getTokenWithRouter (imageName, fallback) {
     var rule = opts.tokenByMatch.find(function (rule) {
@@ -48,6 +51,19 @@ function start(opts) {
     return imageNameMap[imageName];
   }
 
+  function getNameLabel(containerName) {
+    var regexp = new RegExp(opts.logLabelRegexp);
+
+    if (regexp.test(containerName)) {
+      var m = regexp.match(containerName);
+      nameLabelMap[containerName] = logLabelCompiledTempate({m});
+    } else {
+      nameLabelMap[containerName] = containerName;
+    }
+
+    return nameLabelMap[containerName];
+  }
+
   var filter = through.obj(function(obj, enc, cb) {
     addAll(opts.add, obj);
     var token = '';
@@ -55,8 +71,9 @@ function start(opts) {
 
     if (obj.line) {
       token = imageNameMap[obj.image] || getTokenWithRouter(obj.image, logsToken);
+      var label = nameLabelMap[obj.name] || getNameLabel(obj.name);
 
-      log = `${new Date(obj.time).toISOString()} [${obj.name}] ${obj.line}`;
+      log = `${new Date(obj.time).toISOString()} ${label} ${obj.line}`;
     }
     else if (obj.type) {
       token = eventsToken;
@@ -184,6 +201,8 @@ function cli() {
       dockerEvents: true,
       statsinterval: 30,
       add: [], // [ 'host=' + os.hostname() ],
+      logLabelTemplate: "<%= m[0] %>",
+      logLabelRegexp: null,
       token: process.env.LOGENTRIES_TOKEN,
       logstoken: process.env.LOGENTRIES_LOGSTOKEN || process.env.LOGENTRIES_TOKEN,
       statstoken: process.env.LOGENTRIES_STATSTOKEN || process.env.LOGENTRIES_TOKEN,
