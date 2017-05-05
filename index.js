@@ -44,7 +44,7 @@ function start(opts) {
 
   function getTokenWithRouter (imageName, fallback) {
     var rule = opts.tokenByMatch.find(function (rule) {
-      return rule.regexp.test(imageName);
+      return rule.imageNameMatch.test(imageName);
     });
 
     imageNameMap[imageName] = rule ? rule.token : fallback;
