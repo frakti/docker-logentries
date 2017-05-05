@@ -40,6 +40,7 @@ function start(opts) {
   var imageNameMap = {};
   var nameLabelMap = {};
   var logLabelCompiledTempate = _.template(opts.logLabelTemplate);
+  var logLabelRegExp = new RegExp(argv.logLabelRegExp, "i");
 
   function getTokenWithRouter (imageName, fallback) {
     var rule = opts.tokenByMatch.find(function (rule) {
@@ -52,10 +53,8 @@ function start(opts) {
   }
 
   function getNameLabel(containerName) {
-    var regexp = new RegExp(opts.logLabelRegexp);
-
-    if (regexp.test(containerName)) {
-      var m = regexp.match(containerName);
+    if (logLabelRegExp.test(containerName)) {
+      var m = logLabelRegExp.exec(containerName);
       nameLabelMap[containerName] = logLabelCompiledTempate({m});
     } else {
       nameLabelMap[containerName] = containerName;
