@@ -146,8 +146,9 @@ var unbound;
 function cli() {
   var argv = minimist(process.argv.slice(2), {
     boolean: ['json', 'secure', 'stats', 'logs', 'dockerEvents'],
-    string: ['token', 'logstoken', 'statstoken', 'eventstoken', 'server', 'port'],
+    string: ['tokenByMatch', 'token', 'logstoken', 'statstoken', 'eventstoken', 'server', 'port'],
     alias: {
+      'tokenByMatch': 'r',
       'token': 't',
       'logstoken': 'l',
       'newline': 'n',
@@ -159,6 +160,7 @@ function cli() {
       'add': 'a'
     },
     default: {
+      tokenByMatch: [],
       json: false,
       newline: true,
       stats: true,
@@ -183,6 +185,7 @@ function cli() {
                 '                         [--matchByImage REGEXP] [--matchByName REGEXP]\n' +
                 '                         [--skipByImage REGEXP] [--skipByName REGEXP]\n' +
                 '                         [--server HOSTNAME] [--port PORT]\n' +
+                '                         [-r IMAGE_NAME_REGEX1=TOKEN1 -r IMAGE_NAME_REGEX2=TOKEN2]\n' +
                 '                         [--help]');
 
     process.exit(1);
@@ -208,6 +211,16 @@ function cli() {
   }
 
   argv.add = argv.add.reduce(function(acc, arg) {
+    arg = arg.split('=');
+    acc[arg[0]] = arg[1];
+    return acc
+  }, {});
+
+  if (argv.tokenByMatch && !Array.isArray(argv.tokenByMatch)) {
+    argv.tokenByMatch = [argv.tokenByMatch];
+  }
+
+  argv.tokenByMatch = argv.tokenByMatch.reduce(function(acc, arg) {
     arg = arg.split('=');
     acc[arg[0]] = arg[1];
     return acc
