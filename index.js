@@ -40,7 +40,7 @@ function start(opts) {
   var imageNameMap = {};
   var nameLabelMap = {};
   var logLabelCompiledTempate = _.template(opts.logLabelTemplate);
-  var logLabelRegExp = new RegExp(argv.logLabelRegExp, "i");
+  var logLabelRegExp = new RegExp(opts.logLabelRegExp, "i");
 
   function getTokenWithRouter (imageName, fallback) {
     var rule = opts.tokenByMatch.find(function (rule) {
