@@ -55,7 +55,6 @@ function start(opts) {
 
     if (obj.line) {
       token = imageNameMap[obj.image] || getTokenWithRouter(obj.image, logsToken);
-      label = labelMap[obj.image] || getImageLabel(obj.image);
 
       log = `${new Date(obj.time).toISOString()} [${obj.name}] ${obj.line}`;
     }
