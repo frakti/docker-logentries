@@ -51,21 +51,27 @@ function start(opts) {
   var filter = through.obj(function(obj, enc, cb) {
     addAll(opts.add, obj);
     var token = '';
+    var log = '';
 
     if (obj.line) {
       token = imageNameMap[obj.image] || getTokenWithRouter(obj.image, logsToken);
+      label = labelMap[obj.image] || getImageLabel(obj.image);
+
+      log = `${new Date(obj.time).toISOString()} [${obj.name}] ${obj.line}`;
     }
     else if (obj.type) {
       token = eventsToken;
+      log = JSON.stringify(obj);
     }
     else if (obj.stats) {
       token = statsToken;
+      log = JSON.stringify(obj);
     }
 
     if (token) {
       this.push(token);
       this.push(' ');
-      this.push(JSON.stringify(obj));
+      this.push(log);
       this.push('\n');
     }
 
