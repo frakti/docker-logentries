@@ -36,13 +36,24 @@ function start(opts) {
   var eventsToken = opts.eventstoken || opts.token;
   var out;
   var noRestart = function() {};
+  var imageNameMap = {};
+
+  function getTokenWithRouter (imageName, fallback) {
+    var rule = opts.tokenByMatch.find(function (rule) {
+      return rule.regexp.test(imageName);
+    });
+
+    imageNameMap[imageName] = rule ? rule.token : fallback;
+
+    return imageNameMap[imageName];
+  }
 
   var filter = through.obj(function(obj, enc, cb) {
     addAll(opts.add, obj);
     var token = '';
 
     if (obj.line) {
-      token = logsToken;
+      token = imageNameMap[obj.image] || getTokenWithRouter(obj.image, logsToken);
     }
     else if (obj.type) {
       token = eventsToken;
@@ -167,7 +178,7 @@ function cli() {
       logs: true,
       dockerEvents: true,
       statsinterval: 30,
-      add: [ 'host=' + os.hostname() ],
+      add: [], // [ 'host=' + os.hostname() ],
       token: process.env.LOGENTRIES_TOKEN,
       logstoken: process.env.LOGENTRIES_LOGSTOKEN || process.env.LOGENTRIES_TOKEN,
       statstoken: process.env.LOGENTRIES_STATSTOKEN || process.env.LOGENTRIES_TOKEN,
@@ -222,9 +233,10 @@ function cli() {
 
   argv.tokenByMatch = argv.tokenByMatch.reduce(function(acc, arg) {
     arg = arg.split('=');
-    acc[arg[0]] = arg[1];
+
+    acc.push({imageNameMatch: new RegExp(arg[0]), token: arg[1]});
     return acc
-  }, {});
+  }, []);
 
   start(argv);
 }
