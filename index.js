@@ -101,7 +101,7 @@ function start(opts) {
 
   opts.events = events;
 
-  if (opts.logs !== false && logsToken) {
+  if (opts.logs !== false && (logsToken || _.size(opts.tokenByMatch) > 0)) {
     loghose = logFactory(opts);
     loghose.pipe(filter);
     streamsOpened++;
